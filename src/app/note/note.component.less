@@ -1,3 +1,52 @@
+#comparator{
+    white-space: pre-wrap;
+    padding: 1em;
+    
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    color: red;
+    opacity: .5;
+}
+
 #editor{
     white-space: pre-wrap;
+    padding: 1em;
+    cursor: text;
 }
+
+span {
+    &[mark="*"], 
+    &[mark="_"],
+    &[mark="***"],
+    &[mark="___"] {
+        font-style: italic;
+    }
+
+    &[mark="**"],
+    &[mark="***"],
+    &[mark="___"] {
+        font-weight: 800;
+    }
+
+    &[mark="::"] {
+        background-color: yellow;
+    }
+
+    &[mark="~~"],
+    &[mark="--"] {
+        text-decoration: line-through;
+    }
+    
+    &[mark="__"],
+    &[mark="___"] {
+        text-decoration: underline;
+    }
+
+    &[mark="`"]{
+        font-family: monospace;
+        background-color: lightgrey;
+        padding: 2px;
+    }
+}
+

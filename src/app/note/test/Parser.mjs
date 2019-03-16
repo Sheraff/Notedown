@@ -1,67 +1,6 @@
 import MdNode from './MdNode'
 import {blocks as BLOCKS} from './Blocks'
 
-export function parseMdString (source) {
-	source = htmlEntities(source)
-	let {document, linkrefs} = parseBlocks(source)
-	const output = display(document, linkrefs)
-	return output
-}
-
-function htmlEntities(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-export function display (document) {
-	
-	let walkNode = document
-	let output = ''
-
-	let tabulation = ''
-
-	do {
-
-		// get next node, linear
-		let {nextNode, parent} = walkNode.next()
-
-		if(nextNode) {
-
-			// if next node is child of a remote parent, close branches
-			if(parent){
-				let backWalkNode = walkNode
-				while (backWalkNode!==parent) {
-					if(backWalkNode.type!=='text')
-						output += tabulation.repeat(backWalkNode.depth) + '</' + backWalkNode.type + '>'
-					backWalkNode = backWalkNode.parent
-				} 
-			}
-
-			walkNode = nextNode
-			output += tabulation.repeat(walkNode.depth)
-			if(walkNode.type === 'text') {
-				let marks = ''
-				let backWalkNode = walkNode
-				// if it's a text node, go back up the tree and reassemble all marks
-				for (let i = walkNode.depth; i > 1; i--) {
-					if(backWalkNode.parent.type!=='item')
-						marks = backWalkNode.parent.marks[backWalkNode.position] + marks
-					backWalkNode = backWalkNode.parent
-				}
-				output += marks + parseInline(walkNode.textContent)
-			} else {
-				// if it's not a text node, open node
-				output += '<' + walkNode.type + ' ' + JSON.stringify(walkNode.info) + '>'
-				// if(walkNode.textContent)
-				// 	output += walkNode.textContent
-			}
-			// output += '\n'
-		} else 
-			break
-	} while (walkNode)
-
-	return output
-}
-
 export function parseBlocks (source) {
 	const lines = source.split(/[\n\r]/)
 	const linkrefs = {}
@@ -129,9 +68,11 @@ export function parseBlocks (source) {
 			// This is text that can be incorporated into the last open block 
 			// (a paragraph, code block, heading, or raw HTML).
 
-			const textNode = new MdNode('text')
-			textNode.textContent = (line ? line : '') + '\n'
-			currentNode.addChild(textNode)	
+			if(line.length > 0) {
+				const textNode = new MdNode('text')
+				textNode.textContent = line
+				currentNode.addChild(textNode)	
+			}
 		} else {
 			// A line was skipped, we close all blocks
 
@@ -142,7 +83,7 @@ export function parseBlocks (source) {
 			currentNode = document
 
 			const textNode = new MdNode('text')
-			textNode.textContent = '\n'
+			textNode.textContent = line
 			currentNode.addChild(textNode)	
 		}
 	})
